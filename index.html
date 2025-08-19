@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>If-Else Logic Decision Tree</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: transparent;
+            padding: 20px;
+        }
+        
+        .decision-container {
+            background-color: #072d24;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 520px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .decision-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        .scenario {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .scenario-text {
+            font-size: 16px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .decision-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .decision-btn {
+            background-color: white;
+            color: #072d24;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            min-width: 80px;
+        }
+
+        .decision-btn:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .decision-btn.yes {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .decision-btn.yes:hover {
+            background-color: #45a049;
+        }
+
+        .decision-btn.no {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .decision-btn.no:hover {
+            background-color: #da190b;
+        }
+
+        .result {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .result-text {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .code-block {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            text-align: left;
+            line-height: 1.4;
+        }
+
+        .reset-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .decision-container {
+                padding: 30px 20px;
+            }
+            
+            .decision-title {
+                font-size: 20px;
+            }
+            
+            .scenario-text {
+                font-size: 14px;
+            }
+            
+            .decision-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .decision-btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="decision-container">
+        <div class="decision-title">🤖 If-Else Logic Demo</div>
+        
+        <div id="scenario1" class="scenario">
+            <div class="scenario-text">
+                <strong>Email Automation Scenario:</strong><br>
+                A new subscriber joins your mailing list. Should we send them the welcome series?
+            </div>
+            <div class="decision-buttons">
+                <button class="decision-btn yes" onclick="makeDecision('welcome', true)">YES</button>
+                <button class="decision-btn no" onclick="makeDecision('welcome', false)">NO</button>
+            </div>
+        </div>
+
+        <div id="result" class="result hidden">
+            <div id="resultText" class="result-text"></div>
+            <div id="codeExample" class="code-block"></div>
+            <button class="reset-btn" onclick="nextScenario()">Try Another Scenario</button>
+        </div>
+    </div>
+
+    <script>
+        let currentScenario = 1;
+        
+        const scenarios = [
+            {
+                title: "Email Automation Scenario:",
+                description: "A new subscriber joins your mailing list. Should we send them the welcome series?",
+                trueResult: "✅ Send Welcome Series",
+                falseResult: "❌ Skip Welcome Series", 
+                trueCode: `if (newSubscriber === true) {
+    sendWelcomeSeries();
+    addToNurtureSequence();
+} else {
+    // Do nothing
+}`,
+                falseCode: `if (newSubscriber === true) {
+    sendWelcomeSeries();
+    addToNurtureSequence();
+} else {
+    // This path was chosen
+    // No welcome series sent
+}`
+            },
+            {
+                title: "Customer Support Automation:",
+                description: "A customer submits a support ticket. Is their account status 'Premium'?",
+                trueResult: "🎯 Route to Priority Support",
+                falseResult: "📋 Route to Standard Support",
+                trueCode: `if (customer.accountStatus === 'Premium') {
+    routeToPriorityQueue();
+    assignToSeniorAgent();
+    sendPriorityNotification();
+}`,
+                falseCode: `if (customer.accountStatus === 'Premium') {
+    routeToPriorityQueue();
+} else {
+    routeToStandardQueue();
+    assignToNextAvailableAgent();
+}`
+            },
+            {
+                title: "E-commerce Automation:",
+                description: "A customer abandons their cart with $100+ items. Should we send a discount offer?",
+                trueResult: "💰 Send 10% Discount Email",
+                falseResult: "📧 Send Standard Reminder",
+                trueCode: `if (cartValue >= 100) {
+    sendDiscountEmail('10% OFF');
+    trackConversionAttempt();
+} else {
+    sendStandardReminder();
+}`,
+                falseCode: `if (cartValue >= 100) {
+    sendDiscountEmail('10% OFF');
+} else {
+    // This path - lower value cart
+    sendStandardReminder();
+    scheduleFollowUp(24);
+}`
+            }
+        ];
+
+        function makeDecision(scenario, choice) {
+            const current = scenarios[currentScenario - 1];
+            const resultDiv = document.getElementById('result');
+            const resultText = document.getElementById('resultText');
+            const codeExample = document.getElementById('codeExample');
+            
+            if (choice) {
+                resultText.innerHTML = `<strong>Decision:</strong> ${current.trueResult}`;
+                codeExample.textContent = current.trueCode;
+            } else {
+                resultText.innerHTML = `<strong>Decision:</strong> ${current.falseResult}`;
+                codeExample.textContent = current.falseCode;
+            }
+            
+            document.getElementById('scenario1').classList.add('hidden');
+            resultDiv.classList.remove('hidden');
+        }
+
+        function nextScenario() {
+            currentScenario = (currentScenario % scenarios.length) + 1;
+            const scenario = scenarios[currentScenario - 1];
+            
+            document.getElementById('scenario1').innerHTML = `
+                <div class="scenario-text">
+                    <strong>${scenario.title}</strong><br>
+                    ${scenario.description}
+                </div>
+                <div class="decision-buttons">
+                    <button class="decision-btn yes" onclick="makeDecision('scenario', true)">YES</button>
+                    <button class="decision-btn no" onclick="makeDecision('scenario', false)">NO</button>
+                </div>
+            `;
+            
+            document.getElementById('scenario1').classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
