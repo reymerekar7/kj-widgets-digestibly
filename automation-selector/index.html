@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Automation Examples</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: transparent;
+            padding: 20px;
+        }
+        
+        .automation-container {
+            background-color: #072d24;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .automation-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .automation-list {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .automation-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .automation-item:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+        }
+
+        .automation-item.checked {
+            background-color: rgba(76, 175, 80, 0.3);
+            border: 2px solid rgba(76, 175, 80, 0.6);
+        }
+
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 6px;
+            background-color: transparent;
+            position: relative;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .checkbox.checked {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .automation-text {
+            font-size: 16px;
+            line-height: 1.5;
+            flex: 1;
+        }
+
+        .automation-text strong {
+            font-weight: 600;
+        }
+
+        .counter-section {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+        }
+
+        .counter-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+
+        .counter-subtext {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .celebration {
+            animation: pulse 1s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .automation-container {
+                padding: 30px 20px;
+            }
+            
+            .automation-title {
+                font-size: 20px;
+            }
+            
+            .automation-item {
+                padding: 12px 15px;
+            }
+            
+            .automation-text {
+                font-size: 14px;
+            }
+            
+            .counter-text {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="automation-container">
+        <div class="automation-title">🤖 Personal Automation Examples</div>
+        
+        <ul class="automation-list" id="automationList">
+            <li class="automation-item" onclick="toggleAutomation(this)">
+                <div class="checkbox"></div>
+                <div class="automation-text">
+                    <strong>Email filters</strong> that automatically sort your inbox (promotional emails go to a folder)
+                </div>
+            </li>
+            
+            <li class="automation-item" onclick="toggleAutomation(this)">
+                <div class="checkbox"></div>
+                <div class="automation-text">
+                    <strong>Automatic bill payments</strong> from your bank account
+                </div>
+            </li>
+            
+            <li class="automation-item" onclick="toggleAutomation(this)">
+                <div class="checkbox"></div>
+                <div class="automation-text">
+                    <strong>Phone notifications</strong> when someone mentions you on social media
+                </div>
+            </li>
+            
+            <li class="automation-item" onclick="toggleAutomation(this)">
+                <div class="checkbox"></div>
+                <div class="automation-text">
+                    <strong>Smart home devices</strong> that turn lights on when you arrive home
+                </div>
+            </li>
+            
+            <li class="automation-item" onclick="toggleAutomation(this)">
+                <div class="checkbox"></div>
+                <div class="automation-text">
+                    <strong>Subscription renewals</strong> that happen without you thinking about it
+                </div>
+            </li>
+            
+            <li class="automation-item" onclick="toggleAutomation(this)">
+                <div class="checkbox"></div>
+                <div class="automation-text">
+                    <strong>Navigation apps</strong> that automatically reroute you around traffic
+                </div>
+            </li>
+            
+            <li class="automation-item" onclick="toggleAutomation(this)">
+                <div class="checkbox"></div>
+                <div class="automation-text">
+                    <strong>Photo backup</strong> that saves your pictures to the cloud automatically
+                </div>
+            </li>
+        </ul>
+
+        <div class="counter-section" id="counterSection">
+            <div class="counter-text" id="counterText">You're already using 0 automations!</div>
+            <div class="counter-subtext">Check off the automations you currently use above</div>
+        </div>
+    </div>
+
+    <script>
+        let checkedCount = 0;
+
+        function toggleAutomation(item) {
+            const checkbox = item.querySelector('.checkbox');
+            const counterSection = document.getElementById('counterSection');
+            const counterText = document.getElementById('counterText');
+            
+            if (item.classList.contains('checked')) {
+                // Uncheck
+                item.classList.remove('checked');
+                checkbox.classList.remove('checked');
+                checkedCount--;
+            } else {
+                // Check
+                item.classList.add('checked');
+                checkbox.classList.add('checked');
+                checkedCount++;
+                
+                // Add celebration animation
+                counterSection.classList.add('celebration');
+                setTimeout(() => {
+                    counterSection.classList.remove('celebration');
+                }, 1000);
+            }
+            
+            updateCounter();
+        }
+
+        function updateCounter() {
+            const counterText = document.getElementById('counterText');
+            
+            if (checkedCount === 0) {
+                counterText.textContent = "You're already using 0 automations!";
+            } else if (checkedCount === 1) {
+                counterText.textContent = "You're already using 1 automation!";
+            } else {
+                counterText.textContent = `You're already using ${checkedCount} automations!`;
+            }
+        }
+    </script>
+</body>
+</html>
