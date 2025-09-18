@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Understanding LLM Tokens</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: transparent;
+            padding: 20px;
+        }
+        
+        .token-container {
+            background-color: #072d24;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .widget-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .explanation {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .explanation-text {
+            font-size: 14px;
+            line-height: 1.6;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 15px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            resize: vertical;
+            min-height: 100px;
+            backdrop-filter: blur(10px);
+        }
+
+        .text-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .tokenize-btn {
+            background-color: white;
+            color: #072d24;
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .tokenize-btn:hover {
+            background-color: #f0f0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .results-section {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .token-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+            min-height: 50px;
+            padding: 15px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+
+        .token {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .token:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #4CAF50;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        .example-btn {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 500;
+            padding: 8px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .token-info {
+            background-color: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .token-info-text {
+            font-size: 13px;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            .token-container {
+                padding: 30px 20px;
+            }
+            
+            .widget-title {
+                font-size: 20px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .example-buttons {
+                flex-direction: column;
+            }
+            
+            .example-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="token-container">
+        <div class="widget-title">🤖 Understanding LLM Tokens</div>
+        
+        <div class="explanation">
+            <div class="explanation-text">
+                <strong>What are tokens?</strong> Tokens are the basic units that Large Language Models (LLMs) use to process text. Think of them as puzzle pieces that the AI uses to understand and generate language. Words can be split into multiple tokens, especially longer or uncommon words.
+            </div>
+            <div class="explanation-text">
+                <strong>Why do tokens matter?</strong> Most AI APIs charge based on token usage, and models have token limits for conversations. Understanding tokens helps you optimize costs and stay within limits.
+            </div>
+        </div>
+
+        <div class="input-section">
+            <label class="input-label">Enter your text to see how it tokenizes:</label>
+            <textarea 
+                id="textInput" 
+                class="text-input" 
+                placeholder="Type or paste any text here... Try different languages, emojis, or technical terms to see how they're tokenized!"
+            ></textarea>
+            
+            <div class="example-buttons">
+                <button class="example-btn" onclick="loadExample('Hello world!')">Simple Text</button>
+                <button class="example-btn" onclick="loadExample('The quick brown fox jumps over the lazy dog.')">Common Phrase</button>
+                <button class="example-btn" onclick="loadExample('Artificial Intelligence and Machine Learning')">Technical Terms</button>
+                <button class="example-btn" onclick="loadExample('🚀 Hello! How are you doing today? 😊')">Emojis</button>
+                <button class="example-btn" onclick="loadExample('console.log(\"Hello, world!\");')">Code</button>
+            </div>
+            
+            <button class="tokenize-btn" onclick="tokenizeText()">🔍 Tokenize Text</button>
+        </div>
+
+        <div id="results" class="results-section hidden">
+            <h3 style="margin-bottom: 15px; font-weight: 600;">Tokenization Results:</h3>
+            
+            <div id="tokenDisplay" class="token-display"></div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span id="tokenCount" class="stat-number">0</span>
+                    <div class="stat-label">Total Tokens</div>
+                </div>
+                <div class="stat-item">
+                    <span id="wordCount" class="stat-number">0</span>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-item">
+                    <span id="charCount" class="stat-number">0</span>
+                    <div class="stat-label">Characters</div>
+                </div>
+                <div class="stat-item">
+                    <span id="ratio" class="stat-number">0</span>
+                    <div class="stat-label">Chars/Token</div>
+                </div>
+            </div>
+
+            <div class="token-info">
+                <div class="token-info-text">
+                    <strong>💡 Token Insights:</strong> <span id="tokenInsight"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function simpleTokenize(text) {
+            // Simplified tokenization that mimics some LLM behavior
+            if (!text.trim()) return [];
+            
+            let tokens = [];
+            
+            // Handle emojis and special characters first
+            const emojiRegex = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu;
+            
+            text = text.replace(emojiRegex, (match) => {
+                tokens.push(match);
+                return ' TOKEN_PLACEHOLDER ';
+            });
+            
+            // Split by whitespace and punctuation, keeping delimiters
+            const parts = text.split(/(\s+|[.,!?;:"'\-\(\)\[\]{}\/\\])/);
+            
+            for (let part of parts) {
+                if (part.trim() === '' || part === ' TOKEN_PLACEHOLDER ') continue;
+                
+                if (part.length <= 2) {
+                    tokens.push(part);
+                } else if (part.length <= 4) {
+                    tokens.push(part);
+                } else if (part.length <= 8) {
+                    // Sometimes split longer words
+                    if (Math.random() > 0.6) {
+                        const mid = Math.floor(part.length / 2);
+                        tokens.push(part.substring(0, mid));
+                        tokens.push(part.substring(mid));
+                    } else {
+                        tokens.push(part);
+                    }
+                } else {
+                    // Longer words often get split into subwords
+                    const chunks = Math.ceil(part.length / 4);
+                    const chunkSize = Math.ceil(part.length / chunks);
+                    for (let i = 0; i < part.length; i += chunkSize) {
+                        tokens.push(part.substring(i, i + chunkSize));
+                    }
+                }
+            }
+            
+            return tokens.filter(token => token.trim() !== '');
+        }
+
+        function tokenizeText() {
+            const text = document.getElementById('textInput').value;
+            if (!text.trim()) {
+                alert('Please enter some text to tokenize!');
+                return;
+            }
+
+            const tokens = simpleTokenize(text);
+            const tokenDisplay = document.getElementById('tokenDisplay');
+            const results = document.getElementById('results');
+
+            // Clear previous results
+            tokenDisplay.innerHTML = '';
+
+            // Display tokens
+            tokens.forEach((token, index) => {
+                const tokenElement = document.createElement('span');
+                tokenElement.className = 'token';
+                tokenElement.textContent = token;
+                tokenElement.title = `Token #${index + 1}: "${token}"`;
+                tokenDisplay.appendChild(tokenElement);
+            });
+
+            // Calculate statistics
+            const tokenCount = tokens.length;
+            const wordCount = text.trim().split(/\s+/).length;
+            const charCount = text.length;
+            const ratio = charCount > 0 ? (charCount / tokenCount).toFixed(1) : 0;
+
+            // Update statistics
+            document.getElementById('tokenCount').textContent = tokenCount;
+            document.getElementById('wordCount').textContent = wordCount;
+            document.getElementById('charCount').textContent = charCount;
+            document.getElementById('ratio').textContent = ratio;
+
+            // Generate insight
+            let insight = '';
+            if (tokenCount === wordCount) {
+                insight = 'Each word became exactly one token - very efficient!';
+            } else if (tokenCount > wordCount) {
+                insight = `Some words were split into multiple tokens. Complex words, punctuation, and special characters often create more tokens.`;
+            } else {
+                insight = 'Interesting! You have fewer tokens than words, possibly due to contractions or short words.';
+            }
+
+            if (text.includes('🚀') || text.includes('😊')) {
+                insight += ' Emojis typically count as separate tokens.';
+            }
+
+            if (/[{}\[\]();]/.test(text)) {
+                insight += ' Code and special punctuation often create additional tokens.';
+            }
+
+            document.getElementById('tokenInsight').textContent = insight;
+
+            // Show results
+            results.classList.remove('hidden');
+        }
+
+        function loadExample(exampleText) {
+            document.getElementById('textInput').value = exampleText;
+            tokenizeText();
+        }
+
+        // Auto-tokenize on input for real-time feedback
+        document.getElementById('textInput').addEventListener('input', function() {
+            if (this.value.trim() && !document.getElementById('results').classList.contains('hidden')) {
+                tokenizeText();
+            }
+        });
+
+        // Load a default example on page load
+        window.addEventListener('load', function() {
+            loadExample('Hello! Welcome to the world of LLM tokens. 🤖');
+        });
+    </script>
+</body>
+</html>
