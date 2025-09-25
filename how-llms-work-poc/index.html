@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Token Prediction and Probability</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: white;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .lesson-container {
+            background-color: white;
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(7, 45, 36, 0.1);
+            border: 1px solid rgba(7, 45, 36, 0.1);
+        }
+        
+        .lesson-header {
+            background: linear-gradient(135deg, #072d24, #0a3b2e);
+            padding: 25px 40px;
+            color: white;
+            text-align: center;
+        }
+        
+        .lesson-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .lesson-progress {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .progress-dot.active {
+            background-color: white;
+            transform: scale(1.2);
+        }
+        
+        .tokenization-diagram {
+            background: #f8f9fa;
+            padding: 40px 20px;
+            margin: 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .diagram-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .lesson-content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .section-intro {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: #555;
+        }
+        
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #072d24;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 3px;
+            background: #072d24;
+            border-radius: 2px;
+        }
+        
+        .process-steps {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .step {
+            margin-bottom: 20px;
+            padding-left: 0;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #072d24;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 600;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #072d24;
+            margin-bottom: 8px;
+        }
+        
+        .step-content {
+            color: #555;
+            line-height: 1.6;
+            margin-left: 45px;
+        }
+        
+        .example-block {
+            background: #072d24;
+            color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border-left: 4px solid #0a3b2e;
+            position: relative;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .probability-demo {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid #e9ecef;
+        }
+        
+        .prob-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .prob-item:last-child {
+            border-bottom: none;
+        }
+        
+        .prob-word {
+            font-weight: 500;
+            color: #072d24;
+        }
+        
+        .prob-bar {
+            flex: 1;
+            margin: 0 15px;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .prob-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #072d24, #0a3b2e);
+            border-radius: 4px;
+            transition: width 2s ease;
+        }
+        
+        .prob-percentage {
+            font-size: 14px;
+            font-weight: 600;
+            color: #072d24;
+        }
+        
+        .widget-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+            border: 2px dashed #072d24;
+        }
+        
+        .widget-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #072d24;
+        }
+        
+        .context-specs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .spec-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+        
+        .spec-model {
+            font-weight: 600;
+            color: #072d24;
+            margin-bottom: 5px;
+        }
+        
+        .spec-tokens {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .key-points {
+            background: rgba(7, 45, 36, 0.05);
+            border-left: 4px solid #072d24;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 10px 10px 0;
+        }
+        
+        .key-points ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .key-points li {
+            padding: 8px 0;
+            color: #555;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .key-points li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #072d24;
+            font-weight: bold;
+        }
+        
+        .interactive-checkpoint {
+            background: linear-gradient(135deg, rgba(7, 45, 36, 0.05), rgba(7, 45, 36, 0.02));
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: center;
+            border: 1px solid rgba(7, 45, 36, 0.2);
+        }
+        
+        .checkpoint-btn {
+            background: #072d24;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .checkpoint-btn:hover {
+            background: #0a3b2e;
+            transform: translateY(-2px);
+        }
+        
+        .lesson-footer {
+            background: linear-gradient(135deg, #072d24, #0a3b2e);
+            padding: 25px 40px;
+            text-align: center;
+        }
+        
+        .next-lesson-btn {
+            background: white;
+            color: #072d24;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+        
+        .next-lesson-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+        
+        .token-widget-container {
+            background-color: white;
+            color: #333;
+            font-family: 'Poppins', sans-serif;
+            padding: 30px;
+            border-radius: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .token-widget-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #072d24;
+        }
+
+        .token-explanation {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+
+        .token-explanation-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .token-input-section {
+            margin-bottom: 25px;
+        }
+
+        .token-input-label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+            color: #072d24;
+        }
+
+        .token-text-input {
+            width: 100%;
+            padding: 15px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background-color: white;
+            color: #333;
+            resize: vertical;
+            min-height: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .token-text-input::placeholder {
+            color: #999;
+        }
+
+        .token-text-input:focus {
+            outline: none;
+            border-color: #072d24;
+            box-shadow: 0 0 0 3px rgba(7, 45, 36, 0.1);
+        }
+
+        .token-tokenize-btn {
+            background-color: #072d24;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 15px 0;
+        }
+
+        .token-tokenize-btn:hover {
+            background-color: #0a3b2e;
+            transform: translateY(-2px);
+        }
+
+        .token-results-section {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .token-token-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 15px 0;
+            min-height: 40px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .token-token {
+            background-color: #072d24;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .token-token:hover {
+            background-color: #0a3b2e;
+            transform: scale(1.05);
+        }
+
+        .token-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .token-stat-item {
+            background-color: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #e9ecef;
+        }
+
+        .token-stat-number {
+            font-size: 20px;
+            font-weight: 700;
+            color: #072d24;
+            display: block;
+        }
+
+        .token-stat-label {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .token-example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+
+        .token-example-btn {
+            background-color: white;
+            color: #072d24;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border: 1px solid #072d24;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .token-example-btn:hover {
+            background-color: #072d24;
+            color: white;
+        }
+
+        .token-token-info {
+            background-color: rgba(7, 45, 36, 0.05);
+            border-left: 4px solid #072d24;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .token-token-info-text {
+            font-size: 13px;
+            line-height: 1.5;
+            color: #555;
+        }
+        
+        @media (max-width: 768px) {
+            .lesson-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .lesson-content {
+                padding: 20px;
+            }
+            
+            .lesson-header {
+                padding: 20px;
+            }
+            
+            .lesson-title {
+                font-size: 24px;
+            }
+            
+            .section-title {
+                font-size: 20px;
+            }
+            
+            .context-specs {
+                grid-template-columns: 1fr;
+            }
+            
+            .step-content {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+            
+            .tokenization-diagram {
+                padding: 20px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="lesson-container">
+        <div class="lesson-header">
+            <div class="lesson-title">Token Prediction and Probability</div>
+            <div class="lesson-progress">
+                <div class="progress-dot active"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+                <div class="progress-dot"></div>
+            </div>
+        </div>
+        
+        <div class="tokenization-diagram">
+            <div class="diagram-container">
+                <svg width="100%" height="500" viewBox="0 0 700 500" style="max-width: 700px;">
+                    <!-- Input Section -->
+                    <rect x="50" y="30" width="280" height="80" fill="none" stroke="#072d24" stroke-width="2" rx="5"/>
+                    <text x="190" y="20" text-anchor="middle" font-family="Poppins" font-weight="600" font-size="16" fill="#072d24">Input</text>
+                    
+                    <!-- Input Words -->
+                    <rect x="70" y="50" width="60" height="40" fill="#072d24" rx="8"/>
+                    <text x="100" y="74" text-anchor="middle" font-family="Poppins" font-size="12" fill="white">word</text>
+                    
+                    <rect x="150" y="50" width="60" height="40" fill="#072d24" rx="8"/>
+                    <text x="180" y="74" text-anchor="middle" font-family="Poppins" font-size="12" fill="white">word</text>
+                    
+                    <rect x="230" y="50" width="60" height="40" fill="#072d24" rx="8"/>
+                    <text x="260" y="74" text-anchor="middle" font-family="Poppins" font-size="12" fill="white">word</text>
+                    
+                    <!-- Arrow down to tokenizer -->
+                    <line x1="190" y1="110" x2="190" y2="140" stroke="#072d24" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- Tokenizer -->
+                    <rect x="140" y="150" width="100" height="40" fill="#f9ca24" rx="5"/>
+                    <text x="190" y="174" text-anchor="middle" font-family="Poppins" font-weight="600" font-size="14" fill="#072d24">tokenizer</text>
+                    
+                    <!-- Arrow down to tokens -->
+                    <line x1="190" y1="190" x2="190" y2="220" stroke="#072d24" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- Tokens Section -->
+                    <rect x="50" y="230" width="280" height="80" fill="none" stroke="#072d24" stroke-width="2" rx="5"/>
+                    
+                    <!-- Token Circles -->
+                    <circle cx="100" cy="270" r="25" fill="#072d24"/>
+                    <text x="100" y="276" text-anchor="middle" font-family="Poppins" font-size="11" fill="white">token</text>
+                    
+                    <circle cx="190" cy="270" r="25" fill="#072d24"/>
+                    <text x="190" y="276" text-anchor="middle" font-family="Poppins" font-size="11" fill="white">token</text>
+                    
+                    <circle cx="280" cy="270" r="25" fill="#072d24"/>
+                    <text x="280" y="276" text-anchor="middle" font-family="Poppins" font-size="11" fill="white">token</text>
+                    
+                    <!-- Arrow to prediction -->
+                    <line x1="330" y1="270" x2="370" y2="270" stroke="#072d24" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- Prediction Box -->
+                    <rect x="380" y="250" width="100" height="40" fill="none" stroke="#072d24" stroke-width="2" rx="5"/>
+                    <text x="430" y="274" text-anchor="middle" font-family="Poppins" font-weight="500" font-size="14" fill="#072d24">prediction</text>
+                    
+                    <!-- Arrow to output -->
+                    <line x1="480" y1="270" x2="520" y2="270" stroke="#072d24" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- Output Section -->
+                    <rect x="530" y="230" width="130" height="80" fill="none" stroke="#072d24" stroke-width="2" rx="5"/>
+                    <text x="595" y="460" text-anchor="middle" font-family="Poppins" font-weight="600" font-size="16" fill="#072d24">Output</text>
+                    
+                    <!-- Output Tokens (lighter) -->
+                    <circle cx="560" cy="270" r="20" fill="#c7d2cc" stroke="#072d24" stroke-width="1"/>
+                    <text x="560" y="276" text-anchor="middle" font-family="Poppins" font-size="10" fill="#072d24">token</text>
+                    
+                    <circle cx="595" cy="270" r="20" fill="#c7d2cc" stroke="#072d24" stroke-width="1"/>
+                    <text x="595" y="276" text-anchor="middle" font-family="Poppins" font-size="10" fill="#072d24">token</text>
+                    
+                    <circle cx="630" cy="270" r="20" fill="#c7d2cc" stroke="#072d24" stroke-width="1"/>
+                    <text x="630" y="276" text-anchor="middle" font-family="Poppins" font-size="10" fill="#072d24">token</text>
+                    
+                    <!-- Arrow down to detokenizer -->
+                    <line x1="595" y1="310" x2="595" y2="340" stroke="#072d24" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- Detokenizer -->
+                    <rect x="545" y="350" width="100" height="40" fill="#f9ca24" rx="5"/>
+                    <text x="595" y="374" text-anchor="middle" font-family="Poppins" font-weight="600" font-size="13" fill="#072d24">detokenizer</text>
+                    
+                    <!-- Arrow down to final output -->
+                    <line x1="595" y1="390" x2="595" y2="420" stroke="#072d24" stroke-width="2" marker-end="url(#arrowhead)"/>
+                    
+                    <!-- Final Output Words -->
+                    <rect x="530" y="430" width="130" height="50" fill="none" stroke="#072d24" stroke-width="2" rx="5"/>
+                    
+                    <rect x="545" y="440" width="35" height="30" fill="#c7d2cc" stroke="#072d24" stroke-width="1" rx="5"/>
+                    <text x="562.5" y="458" text-anchor="middle" font-family="Poppins" font-size="11" fill="#072d24">word</text>
+                    
+                    <rect x="590" y="440" width="35" height="30" fill="#c7d2cc" stroke="#072d24" stroke-width="1" rx="5"/>
+                    <text x="607.5" y="458" text-anchor="middle" font-family="Poppins" font-size="11" fill="#072d24">word</text>
+                    
+                    <rect x="635" y="440" width="35" height="30" fill="#c7d2cc" stroke="#072d24" stroke-width="1" rx="5"/>
+                    <text x="652.5" y="458" text-anchor="middle" font-family="Poppins" font-size="11" fill="#072d24">word</text>
+                    
+                    <!-- Digestibly Logo -->
+                    <g transform="translate(20, 430)">
+                        <circle cx="10" cy="10" r="8" fill="#072d24"/>
+                        <text x="10" y="14" text-anchor="middle" font-family="Poppins" font-weight="700" font-size="10" fill="white">D</text>
+                        <text x="25" y="14" font-family="Poppins" font-weight="600" font-size="12" fill="#072d24">Digestibly.</text>
+                    </g>
+                    
+                    <!-- Arrow marker definition -->
+                    <defs>
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#072d24"/>
+                        </marker>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="lesson-content">
+            <div class="section visible">
+                <div class="section-intro">
+                    LLMs work by breaking down text into smaller units called <strong>tokens</strong> (which can be words, parts of words, or punctuation) and then predicting what token should come next based on probability.
+                </div>
+                
+                <div class="section-title">The Process</div>
+                
+                <div class="process-steps">
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <div class="step-title">Tokenization</div>
+                        <div class="step-content">
+                            Input text is split into tokens
+                            <div class="example-block">
+                                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                                "Hello world" might become ["Hello", " world"]
+                            </div>
+                            <div class="example-block">
+                                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                                Complex words might be split: "understanding" → ["under", "standing"]
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <div class="step-title">Probability Calculation</div>
+                        <div class="step-content">
+                            For each position, the model calculates probabilities for every possible next token
+                            <div style="margin-top: 15px;">
+                                <strong>Given "The cat sat on the", the model might predict:</strong>
+                                <div class="probability-demo">
+                                    <div class="prob-item">
+                                        <span class="prob-word">"mat"</span>
+                                        <div class="prob-bar"><div class="prob-fill" style="width: 40%"></div></div>
+                                        <span class="prob-percentage">40%</span>
+                                    </div>
+                                    <div class="prob-item">
+                                        <span class="prob-word">"couch"</span>
+                                        <div class="prob-bar"><div class="prob-fill" style="width: 25%"></div></div>
+                                        <span class="prob-percentage">25%</span>
+                                    </div>
+                                    <div class="prob-item">
+                                        <span class="prob-word">"floor"</span>
+                                        <div class="prob-bar"><div class="prob-fill" style="width: 20%"></div></div>
+                                        <span class="prob-percentage">20%</span>
+                                    </div>
+                                    <div class="prob-item">
+                                        <span class="prob-word">Other options</span>
+                                        <div class="prob-bar"><div class="prob-fill" style="width: 15%"></div></div>
+                                        <span class="prob-percentage">15%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <div class="step-title">Selection</div>
+                        <div class="step-content">
+                            The model selects the next token based on these probabilities (not always the highest probability to maintain creativity)
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <span class="step-number">4</span>
+                        <div class="step-title">Iteration</div>
+                        <div class="step-content">
+                            This process repeats, with each new token becoming part of the context for predicting the next one
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="interactive-checkpoint">
+                <div class="widget-title">🎯 Ready to see this in action?</div>
+                <p style="margin-bottom: 20px; color: #666;">Understanding how tokens work is crucial for effective AI interaction</p>
+                <button class="checkpoint-btn" onclick="showWidget()">Explore Interactive Demo</button>
+            </div>
+            
+            <div class="widget-container" id="widgetContainer" style="display: none;">
+                <div class="widget-title">Interactive Tokenization Demo</div>
+                <div class="tokenization-widget">
+                    <div class="token-widget-container">
+                        <div class="token-widget-title">🤖 Understanding LLM tokens</div>
+                        
+                        <div class="token-explanation">
+                            <div class="token-explanation-text">
+                                <strong>What are tokens?</strong> Tokens are the basic units that Large Language Models (LLMs) use to process text. Think of them as puzzle pieces that the AI uses to understand and generate language. Words can be split into multiple tokens, especially longer or uncommon words.
+                            </div>
+                            <div class="token-explanation-text">
+                                <strong>Why do tokens matter?</strong> Most AI APIs charge based on token usage, and models have token limits for conversations. Understanding tokens helps you optimize costs and stay within limits.
+                            </div>
+                        </div>
+
+                        <div class="token-input-section">
+                            <label class="token-input-label">Enter your text to see how it tokenizes:</label>
+                            <textarea 
+                                id="textInput" 
+                                class="token-text-input" 
+                                placeholder="Type or paste any text here... Try different languages, emojis, or technical terms to see how they're tokenized!"
+                            ></textarea>
+                            
+                            <div class="token-example-buttons">
+                                <button class="token-example-btn" onclick="loadExample('Hello world!')">Simple Text</button>
+                                <button class="token-example-btn" onclick="loadExample('The quick brown fox jumps over the lazy dog.')">Common Phrase</button>
+                                <button class="token-example-btn" onclick="loadExample('Artificial Intelligence and Machine Learning')">Technical Terms</button>
+                                <button class="token-example-btn" onclick="loadExample('🚀 Hello! How are you doing today? 😊')">Emojis</button>
+                                <button class="token-example-btn" onclick="loadExample('console.log(\"Hello, world!\");')">Code</button>
+                            </div>
+                            
+                            <button class="token-tokenize-btn" onclick="tokenizeText()">🔍 Tokenize Text</button>
+                        </div>
+
+                        <div id="tokenResults" class="token-results-section hidden">
+                            <h3 style="margin-bottom: 15px; font-weight: 600; color: #072d24;">Tokenization Results:</h3>
+                            
+                            <div id="tokenDisplay" class="token-token-display"></div>
+                            
+                            <div class="token-stats">
+                                <div class="token-stat-item">
+                                    <span id="tokenCount" class="token-stat-number">0</span>
+                                    <div class="token-stat-label">Total Tokens</div>
+                                </div>
+                                <div class="token-stat-item">
+                                    <span id="wordCount" class="token-stat-number">0</span>
+                                    <div class="token-stat-label">Words</div>
+                                </div>
+                                <div class="token-stat-item">
+                                    <span id="charCount" class="token-stat-number">0</span>
+                                    <div class="token-stat-label">Characters</div>
+                                </div>
+                                <div class="token-stat-item">
+                                    <span id="ratio" class="token-stat-number">0</span>
+                                    <div class="token-stat-label">Chars/Token</div>
+                                </div>
+                            </div>
+
+                            <div class="token-token-info">
+                                <div class="token-token-info-text">
+                                    <strong>💡 Token Insights:</strong> <span id="tokenInsight"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">Context Windows and Memory Limitations</div>
+                
+                <div class="section-intro">
+                    The <strong>context window</strong> is the maximum amount of text (measured in tokens) that an LLM can consider at once. Think of it as the model's "working memory."
+                </div>
+                
+                <div class="key-points">
+                    <strong>Key Characteristics:</strong>
+                    <ul>
+                        <li><strong>Fixed Size:</strong> Each model has a predetermined context window limit</li>
+                        <li><strong>Sliding Window:</strong> When text exceeds the limit, older tokens are "forgotten"</li>
+                    </ul>
+                </div>
+                
+                <div class="section-title" style="margin-top: 30px;">Context Window Sizes in 2025</div>
+                <div class="context-specs">
+                    <div class="spec-card">
+                        <div class="spec-model">GPT-4o</div>
+                        <div class="spec-tokens">128,000 tokens<br>(~100,000 words)</div>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-model">Claude Sonnet 4</div>
+                        <div class="spec-tokens">200,000 tokens</div>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-model">Gemini 1.5 Pro</div>
+                        <div class="spec-tokens">1,000,000 tokens</div>
+                    </div>
+                    <div class="spec-card">
+                        <div class="spec-model">Llama 4</div>
+                        <div class="spec-tokens">256,000 tokens</div>
+                    </div>
+                </div>
+                
+                <div class="key-points">
+                    <strong>Why Context Windows Matter:</strong>
+                    <ul>
+                        <li>Determines how much conversation history the model remembers</li>
+                        <li>Affects the model's ability to maintain coherence in long documents</li>
+                        <li>Influences performance on tasks requiring extensive context</li>
+                    </ul>
+                </div>
+                
+                <div class="key-points">
+                    <strong>Limitations:</strong>
+                    <ul>
+                        <li>Models may lose track of information outside their context window</li>
+                        <li>Performance can degrade with very long contexts (models work best with relevant information at the beginning or end)</li>
+                        <li>Larger context windows require more computational resources</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="interactive-checkpoint">
+                <div class="widget-title">💡 Understanding So Far?</div>
+                <p style="margin-bottom: 20px; color: #666;">Context windows are like short-term memory for AI</p>
+                <button class="checkpoint-btn" onclick="continueLesson()">Continue to Transformer Architecture</button>
+            </div>
+            
+            <div class="section" id="transformerSection" style="display: none;">
+                <div class="section-title">The Transformer Architecture (High-Level Overview)</div>
+                
+                <div class="section-intro">
+                    The <strong>transformer</strong> is the underlying architecture that powers modern LLMs. Introduced in the 2017 paper "Attention Is All You Need," it revolutionized how machines process language.
+                </div>
+                
+                <div class="section-title" style="margin-top: 30px;">Key Components</div>
+                
+                <div class="process-steps">
+                    <div class="step">
+                        <span class="step-number">1</span>
+                        <div class="step-title">Self-Attention Mechanism</div>
+                        <div class="step-content">
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li>• Allows the model to focus on different parts of the input text simultaneously</li>
+                                <li>• Calculates relationships between all tokens in the sequence</li>
+                                <li>• <strong>Example:</strong> In "The animal didn't cross the street because it was too tired," attention helps the model understand that "it" refers to "animal"</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <span class="step-number">2</span>
+                        <div class="step-title">Parallel Processing</div>
+                        <div class="step-content">
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li>• Unlike older models that processed text sequentially (one word at a time)</li>
+                                <li>• Transformers can process all tokens simultaneously</li>
+                                <li>• This enables much faster training and inference</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <span class="step-number">3</span>
+                        <div class="step-title">Encoder-Decoder Structure (Original)</div>
+                        <div class="step-content">
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li>• <strong>Encoder:</strong> Processes and understands the input</li>
+                                <li>• <strong>Decoder:</strong> Generates the output</li>
+                                <li>• Modern LLMs often use decoder-only architectures</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <span class="step-number">4</span>
+                        <div class="step-title">Layer Stacking</div>
+                        <div class="step-content">
+                            <ul style="list-style: none; padding-left: 0;">
+                                <li>• Multiple transformer layers stacked on top of each other</li>
+                                <li>• Each layer refines the understanding from the previous layer</li>
+                                <li>• More layers generally mean better performance (but require more computation)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="key-points">
+                    <strong>Why Transformers Work So Well:</strong>
+                    <ul>
+                        <li>Can capture long-range dependencies in text</li>
+                        <li>Scale effectively with more data and compute</li>
+                        <li>Parallel processing makes training efficient</li>
+                        <li>Attention mechanism provides interpretability</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lesson-footer">
+            <button class="next-lesson-btn" onclick="nextLesson()">Next Lesson: Training Process Deep Dive →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentProgress = 1;
+        
+        function updateProgress() {
+            const dots = document.querySelectorAll('.progress-dot');
+            dots.forEach((dot, index) => {
+                if (index < currentProgress) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+        
+        function showWidget() {
+            const container = document.getElementById('widgetContainer');
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth' });
+            currentProgress = 2;
+            updateProgress();
+        }
+        
+        function continueLesson() {
+            const section = document.getElementById('transformerSection');
+            section.style.display = 'block';
+            section.scrollIntoView({ behavior: 'smooth' });
+            currentProgress = 3;
+            updateProgress();
+            
+            // Animate sections into view
+            setTimeout(() => {
+                section.classList.add('visible');
+            }, 100);
+        }
+        
+        function nextLesson() {
+            currentProgress = 4;
+            updateProgress();
+            // Here you would typically navigate to the next lesson
+            alert('Great job! Ready for the next lesson.');
+        }
+        
+        function copyToClipboard(button) {
+            const codeBlock = button.parentNode;
+            const text = codeBlock.textContent.replace('Copy', '').trim();
+            
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#072d24';
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.style.background = 'rgba(255, 255, 255, 0.1)';
+                }, 2000);
+            }).catch(() => {
+                button.textContent = 'Copy failed';
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+        
+        // Intersection Observer for scroll-based animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        // Observe all sections
+        document.addEventListener('DOMContentLoaded', () => {
+            const sections = document.querySelectorAll('.section:not(.visible)');
+            sections.forEach(section => observer.observe(section));
+            
+            // Animate probability bars
+            setTimeout(() => {
+                const probFills = document.querySelectorAll('.prob-fill');
+                probFills.forEach(fill => {
+                    const width = fill.style.width;
+                    fill.style.width = '0%';
+                    setTimeout(() => {
+                        fill.style.width = width;
+                    }, 500);
+                });
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
